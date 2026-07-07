@@ -98,6 +98,17 @@ namespace Library.ViewModels
                 {
                     _selectedBook = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SelectedBook"));
+
+                    // populate the form fields with the selected book's data,
+                    // so the user can edit them and click "Update"
+                    if (_selectedBook != null)
+                    {
+                        NewTitle = _selectedBook.Title;
+                        NewAuthor = _selectedBook.Author;
+                        NewGenre = _selectedBook.Genre;
+                        NewPrice = _selectedBook.Price;
+                        NewIsAvailable = _selectedBook.IsAvailable;
+                    }
                 }
             }
         }
@@ -118,11 +129,15 @@ namespace Library.ViewModels
 
         public ICommand AddBookCommand { get; set; }//comanda care se execută când utilizatorul apasă un buton pentru a adăuga o carte
         public ICommand DeleteBookCommand { get; set; }
+        public ICommand EditBookCommand { get; set; }
+        public ICommand ClearFormCommand { get; set; }
 
         public MainWindowViewModel()
         {
             AddBookCommand = new RelayCommand(AddBookCommandExecute);
             DeleteBookCommand = new RelayCommand(DeleteBookCommandExecute);
+            EditBookCommand = new RelayCommand(EditBookCommandExecute);
+            ClearFormCommand = new RelayCommand(ClearForm);
             LoadBooks();
         }
 
@@ -174,12 +189,44 @@ namespace Library.ViewModels
         {
             AddBook();
             LoadBooks();
-            NewTitle = null;
-            NewAuthor = null;
-            NewGenre = null;
-            NewPrice = 0;
-            NewIsAvailable = false;
+            ClearForm();
+        }
 
+        public void UpdateBook(BookModel book)// metodă care actualizează o carte existentă în baza de date
+        {
+            if (book == null)
+                return;
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            string query = @"UPDATE BOOKS
+                              SET TITLE = $title,
+                                  AUTHOR = $author,
+                                  GENRE = $genre,
+                                  PRICE = $price,
+                                  IS_AVAILABLE = $isAvailable
+                              WHERE BOOK_ID = $id";
+
+            using var command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("$title", NewTitle);
+            command.Parameters.AddWithValue("$author", NewAuthor);
+            command.Parameters.AddWithValue("$genre", NewGenre);
+            command.Parameters.AddWithValue("$price", NewPrice);
+            command.Parameters.AddWithValue("$isAvailable", NewIsAvailable);
+            command.Parameters.AddWithValue("$id", book.BookId);
+
+            command.ExecuteNonQuery();
+        }
+
+        public void EditBookCommandExecute()
+        {
+            if (SelectedBook == null)
+                return;
+
+            UpdateBook(SelectedBook);
+            LoadBooks();
+            ClearForm();
         }
 
         public void DeleteBook(BookModel book)
@@ -206,8 +253,18 @@ namespace Library.ViewModels
             if (SelectedBook != null)
             {
                 DeleteBook(SelectedBook);
-                Books.Remove(SelectedBook);
+                ClearForm();
             }
+        }
+
+        public void ClearForm()
+        {
+            SelectedBook = null;
+            NewTitle = null;
+            NewAuthor = null;
+            NewGenre = null;
+            NewPrice = 0;
+            NewIsAvailable = false;
         }
     }
 }
