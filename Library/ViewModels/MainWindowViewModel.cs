@@ -203,13 +203,11 @@ namespace Library.ViewModels
 
         public void DeleteBookCommandExecute()
         {
-            //var book = parameter as BookModel;
             if (SelectedBook != null)
             {
                 DeleteBook(SelectedBook);
                 Books.Remove(SelectedBook);
             }
-            // DeleteBookCommand = new RelayCommand(DeleteBook);
         }
     }
 }
