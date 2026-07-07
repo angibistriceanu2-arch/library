@@ -5,102 +5,110 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Library"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="MainWindow"
+    Title="Library"
     Width="800"
     Height="450"
     Background="AliceBlue"
     WindowState="Maximized"
     mc:Ignorable="d">
-    <StackPanel>
-        <ListView Margin="20" ItemsSource="{Binding Books}">
+
+    <Grid Margin="20">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Books List  -->
+        <ListView
+            x:Name="BooksListView"
+            Grid.Row="0"
+            ItemsSource="{Binding Books}"
+            SelectedItem="{Binding SelectedBook}">
+
             <ListView.View>
                 <GridView>
                     <GridViewColumn
-                        Width="150"
+                        Width="100"
                         DisplayMemberBinding="{Binding BookId}"
                         Header="Book Id" />
+
                     <GridViewColumn
-                        Width="200"
+                        Width="220"
                         DisplayMemberBinding="{Binding Title}"
                         Header="Title" />
+
                     <GridViewColumn
-                        Width="120"
+                        Width="180"
                         DisplayMemberBinding="{Binding Author}"
                         Header="Author" />
+
                     <GridViewColumn
-                        Width="80"
+                        Width="120"
                         DisplayMemberBinding="{Binding Genre}"
                         Header="Genre" />
+
                     <GridViewColumn
                         Width="80"
                         DisplayMemberBinding="{Binding Price}"
                         Header="Price" />
+
                     <GridViewColumn
-                        Width="80"
+                        Width="90"
                         DisplayMemberBinding="{Binding IsAvailable}"
-                        Header="Is available" />
+                        Header="Available" />
                 </GridView>
             </ListView.View>
+
         </ListView>
-        <StackPanel
-            Grid.Row="2"
-            Margin="20"
-            Orientation="Vertical">
-            <StackPanel Margin="0,8">
-                <TextBlock
-                    Margin="0,0,0,4"
-                    FontWeight="SemiBold"
-                    Text="Book Title" />
-                <TextBox Padding="6" Text="{Binding NewTitle}" />
+
+        <!--  Add Book  -->
+        <StackPanel Grid.Row="1" Margin="0,20,0,0">
+
+            <TextBlock FontWeight="SemiBold" Text="Book Title" />
+            <TextBox Margin="0,5,0,10" Text="{Binding NewTitle, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock FontWeight="SemiBold" Text="Book Author" />
+            <TextBox Margin="0,5,0,10" Text="{Binding NewAuthor, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock FontWeight="SemiBold" Text="Book Genre" />
+            <TextBox Margin="0,5,0,10" Text="{Binding NewGenre, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock FontWeight="SemiBold" Text="Book Price" />
+            <TextBox Margin="0,5,0,10" Text="{Binding NewPrice, UpdateSourceTrigger=PropertyChanged}" />
+
+            <CheckBox
+                Margin="0,5,0,15"
+                Content="Is Available"
+                IsChecked="{Binding NewIsAvailable}" />
+
+            <StackPanel Orientation="Horizontal">
+
+                <Button
+                    Width="120"
+                    Height="35"
+                    Margin="0,0,10,0"
+                    Background="#007ACC"
+                    BorderThickness="0"
+                    Command="{Binding AddBookCommand}"
+                    Content="Add"
+                    FontWeight="Bold"
+                    Foreground="White" />
+
+                <Button
+                    Width="120"
+                    Height="35"
+                    Background="IndianRed"
+                    BorderThickness="0"
+                    Command="{Binding DeleteBookCommand}"
+                    Content="Delete"
+                    FontWeight="Bold"
+                    Foreground="White" />
+
             </StackPanel>
-            <StackPanel Margin="0,8">
-                <TextBlock
-                    Margin="0,0,0,4"
-                    FontWeight="SemiBold"
-                    Text="Book Author" />
-                <TextBox Padding="6" Text="{Binding NewAuthor}" />
-            </StackPanel>
-            <StackPanel Margin="0,8">
-                <TextBlock
-                    Margin="0,0,0,4"
-                    FontWeight="SemiBold"
-                    Text="Book Genre" />
-                <TextBox Padding="6" Text="{Binding NewGenre}" />
-            </StackPanel>
-            <StackPanel Margin="0,8">
-                <TextBlock
-                    Margin="0,0,0,4"
-                    FontWeight="SemiBold"
-                    Text="Book Price" />
-                <TextBox Padding="6" Text="{Binding NewPrice}" />
-            </StackPanel>
-            <CheckBox Content="Is available" IsChecked="{Binding NewIsAvailable}" />
-            <Button
-                Width="120"
-                Height="36"
-                Margin="0,8,0,0"
-                HorizontalAlignment="Left"
-                Background="#007ACC"
-                BorderBrush="{x:Null}"
-                Command="{Binding AddBookCommand}"
-                Content="Add"
-                Cursor="Hand"
-                FontWeight="Bold"
-                Foreground="White">
-                <Button.Effect>
-                    <DropShadowEffect
-                        BlurRadius="4"
-                        Opacity="0.3"
-                        ShadowDepth="2" />
-                </Button.Effect>
-            </Button>
+
         </StackPanel>
-        <Button Content="Delete"
-        Width="100"
-        Margin="10"
-        Command="{Binding DeleteBookCommand}"
-        CommandParameter="{Binding SelectedItem, ElementName=BooksListView}" />
-        <ListView x:Name="BooksListView"
-          ItemsSource="{Binding Books}">
-    </StackPanel>
+
+    </Grid>
+
 </Window>

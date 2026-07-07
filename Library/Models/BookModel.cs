@@ -15,6 +15,5 @@ namespace Library.Models
         public string Genre { get; set; }
         public decimal Price { get; set; }
         public bool IsAvailable { get; set; }
-        public RelayCommand DeleteBookCommand { get; set; }
     }
 }

@@ -17,6 +17,7 @@ namespace Library.ViewModels
         private string _newGenre;
         private decimal _newPrice;
         private bool _newIsAvailable;
+        private BookModel _selectedBook;
         private ObservableCollection<BookModel> _books;
 
 
@@ -88,6 +89,19 @@ namespace Library.ViewModels
             }
         }
 
+        public BookModel SelectedBook
+        {
+            get => _selectedBook;
+            set
+            {
+                if (_selectedBook != value)
+                {
+                    _selectedBook = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SelectedBook"));
+                }
+            }
+        }
+
         //listă specială de obiecte care anunță automat interfața când se adaugă sau se șterge ceva
         public ObservableCollection<BookModel> Books
         {
@@ -103,10 +117,12 @@ namespace Library.ViewModels
         }
 
         public ICommand AddBookCommand { get; set; }//comanda care se execută când utilizatorul apasă un buton pentru a adăuga o carte
+        public ICommand DeleteBookCommand { get; set; }
 
         public MainWindowViewModel()
         {
             AddBookCommand = new RelayCommand(AddBookCommandExecute);
+            DeleteBookCommand = new RelayCommand(DeleteBookCommandExecute);
             LoadBooks();
         }
 
@@ -166,14 +182,34 @@ namespace Library.ViewModels
 
         }
 
-        private void DeleteBook(object parameter)
+        public void DeleteBook(BookModel book)
         {
-            var book = parameter as BookModel;
-            if (book != null)
+            if (book == null)
+                return;
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            string query = @"DELETE FROM BOOKS
+                     WHERE BOOK_ID = $id";
+
+            using var command = new SqliteCommand(query, connection);
+            command.Parameters.AddWithValue("$id", book.BookId);
+
+            command.ExecuteNonQuery();
+
+            Books.Remove(book);
+        }
+
+        public void DeleteBookCommandExecute()
+        {
+            //var book = parameter as BookModel;
+            if (SelectedBook != null)
             {
-                Books.Remove(book);
+                DeleteBook(SelectedBook);
+                Books.Remove(SelectedBook);
             }
-           // DeleteBookCommand = new RelayCommand(DeleteBook);
+            // DeleteBookCommand = new RelayCommand(DeleteBook);
         }
     }
 }
