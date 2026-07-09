@@ -3,6 +3,7 @@ using Library.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using System.Windows.Data;
 using Microsoft.Data.Sqlite;
 using System.Windows.Controls;
 
@@ -17,8 +18,10 @@ namespace Library.ViewModels
         private string _newGenre;
         private decimal _newPrice;
         private bool _newIsAvailable;
+        private string _searchText;
         private BookModel _selectedBook;
         private ObservableCollection<BookModel> _books;
+        private ICollectionView _booksView;
 
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -89,6 +92,21 @@ namespace Library.ViewModels
             }
         }
 
+        // textul din bara de căutare; de fiecare dată când se schimbă, reaplicăm filtrul
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (_searchText != value)
+                {
+                    _searchText = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SearchText"));
+                    _booksView?.Refresh();
+                }
+            }
+        }
+
         public BookModel SelectedBook
         {
             get => _selectedBook;
@@ -99,8 +117,6 @@ namespace Library.ViewModels
                     _selectedBook = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SelectedBook"));
 
-                    // populate the form fields with the selected book's data,
-                    // so the user can edit them and click "Update"
                     if (_selectedBook != null)
                     {
                         NewTitle = _selectedBook.Title;
@@ -123,24 +139,45 @@ namespace Library.ViewModels
                 {
                     _books = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Books"));
+
+                    _booksView = CollectionViewSource.GetDefaultView(_books);
+                    _booksView.Filter = FilterBooks;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BooksView"));
                 }
             }
         }
 
+        public ICollectionView BooksView => _booksView;
+
         public ICommand AddBookCommand { get; set; }//comanda care se execută când utilizatorul apasă un buton pentru a adăuga o carte
         public ICommand DeleteBookCommand { get; set; }
         public ICommand EditBookCommand { get; set; }
-        public ICommand ClearFormCommand { get; set; }
 
         public MainWindowViewModel()
         {
             AddBookCommand = new RelayCommand(AddBookCommandExecute);
             DeleteBookCommand = new RelayCommand(DeleteBookCommandExecute);
             EditBookCommand = new RelayCommand(EditBookCommandExecute);
-            ClearFormCommand = new RelayCommand(ClearForm);
             LoadBooks();
         }
 
+        // funcția de filtrare: verifică dacă titlul, autorul sau genul conțin textul căutat
+        private bool FilterBooks(object obj)
+        {
+            if (obj is not BookModel book)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(SearchText))
+                return true;
+
+            string search = SearchText.Trim().ToLower();
+
+            bool matchesTitle = book.Title?.ToLower().Contains(search) == true;
+            bool matchesAuthor = book.Author?.ToLower().Contains(search) == true;
+            bool matchesGenre = book.Genre?.ToLower().Contains(search) == true;
+
+            return matchesTitle || matchesAuthor || matchesGenre;
+        }
 
         public void LoadBooks()// metodă care încarcă toate cărțile din baza de date în lista Books
         {
